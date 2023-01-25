@@ -1,4 +1,4 @@
-import flatpickr from "flatpickr";
+import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
@@ -17,7 +17,7 @@ function convertMs(ms) {
   const minutes = pad(Math.floor(((ms % day) % hour) / minute));
   // Remaining seconds
   const seconds = pad(Math.floor((((ms % day) % hour) % minute) / second));
-  
+
   return { days, hours, minutes, seconds };
 }
 
@@ -32,59 +32,55 @@ const refs = {
   spanHours: document.querySelector('[data-hours]'),
   spanMinutes: document.querySelector('[data-minutes]'),
   spanSeconds: document.querySelector('[data-seconds]'),
-}
+};
 refs.buttonStart.setAttribute('disabled', true);
+refs.buttonStart.addEventListener('click', onButtonClick);
+
+let isActive = false;
+let intervalId = 0;
+let destination = null;
+
+function onButtonClick() {
+  if (isActive || !destination) return;
+
+  intervalId = setInterval(() => {
+    updateTimer(destination);
+  }, 1000);
+}
+
+const updateTimer = selectedTime => {
+  const deltaTime = new Date() - selectedTime;
+  const { days, hours, minutes, seconds } = convertMs(deltaTime);
+
+  refs.spanDays.textContent = days;
+  refs.spanHours.textContent = hours;
+  refs.spanMinutes.textContent = minutes;
+  refs.spanSeconds.textContent = seconds;
+};
+
+const onCloseDatePicker = selectedDates => {
+  console.log(selectedDates)
+  const selectTime = selectedDates[0];
+
+  if (selectTime < new Date()) {
+    Notify.failure('Please choose a date in the future');
+    return;
+  } else {
+    refs.buttonStart.removeAttribute('disabled');
+  }
+  destination = selectTime;
+  updateTimer(selectTime);
+};
 
 const options = {
   enableTime: true,
   time_24hr: true,
   defaultDate: new Date(),
   minuteIncrement: 1,
-  isActive: false,
   intervalId: null,
+  onClose: onCloseDatePicker,
+}
 
-  onClose(selectedDates) {
-    
-    const selectTime = selectedDates[0];
-    
-    if (selectedDates[0] < options.defaultDate) {
-      Notify.failure("Please choose a date in the future")
-      return;
-    } else {
-      refs.buttonStart.removeAttribute('disabled');
-    }
-    
-    const onButtonClick = () => {
-      if (this.isActive) {
-        return;
-      }
-      
-      this.intervalId = setInterval(() => {
-        const startTime = Date.now();
-        this.isActive = true;
-        
-        const deltaTime = selectTime - startTime;
-        const { days, hours, minutes, seconds } = convertMs(deltaTime);
-  
-        refs.spanDays.textContent = days;
-        refs.spanHours.textContent = hours;
-        refs.spanMinutes.textContent = minutes;
-        refs.spanSeconds.textContent = seconds;
-
-        if (days === '00' && hours === '00' && minutes === '00' && seconds === '00') {
-          clearInterval(this.intervalId)
-          this.isActive = false;  
-        }
-        
-      }, 1000);
-    }
-    
-    refs.buttonStart.addEventListener('click', onButtonClick)
-  },
-  
-};
+flatpickr(refs.input, options );
 
 
-
-
-flatpickr(refs.input, {...options})

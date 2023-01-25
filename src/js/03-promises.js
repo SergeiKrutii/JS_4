@@ -53,15 +53,6 @@ function onFormSubmit(e) {
 
 
 
-// const formData = new FormData(e.currentTarget);
-// const formDataOptions = {};
-
-// for (const [key, value] of formData.entries()) {
-//   formDataOptions[key] = Number(value);  
-// }
-
-
-
 
 
 
